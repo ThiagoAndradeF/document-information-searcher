@@ -7,25 +7,22 @@ namespace DIS.Services
 {
     public class DocumentService
     {
-        DocumentService()
-        {
-
-        }
+        public DocumentService(){}
         public List<string> ProcessDocument(string filepath)
         {
-            string content = ReadWordDocument(filepath);
-            List<string> chunks = ChunkText(content);
+            string content = readWordDocument(filepath);
+            List<string> chunks = chunkText(content);
             return chunks;
         }
-
-        public static string ReadWordDocument(string filepath)
+        private static string readWordDocument(string filepath)
         {
+
             WordprocessingDocument wordDocument = WordprocessingDocument.Open(filepath, false);
             Body body = wordDocument.MainDocumentPart.Document.Body;
             return body.InnerText;
         }
 
-        public static List<string> ChunkText(string text)
+        private static List<string> chunkText(string text)
         {
             List<string> chunks = new List<string>();
             var sentences = Regex.Split(text, @"(?<=[\.!\?])\s+");
