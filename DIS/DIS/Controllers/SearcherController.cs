@@ -9,10 +9,13 @@ namespace DIS.Controllers
     public class SearcherController : ControllerBase
     {
         private readonly DocumentService _documentationService;
+        private readonly IMilvusClientService _milvusClientService;
 
-        public SearcherController(DocumentService documentationService)
+
+        public SearcherController(DocumentService documentationService, IMilvusClientService milvusClientService)
         {
             _documentationService = documentationService;
+            _milvusClientService = milvusClientService;
         }
 
         [HttpPost]
@@ -33,5 +36,18 @@ namespace DIS.Controllers
                 return StatusCode(500, "An error occurred while processing the document: " + ex.Message);
             }
         }
+        [HttpPost("database")]
+        public async Task<ActionResult> CreateDatabase([FromBody] string databaseName)
+            {
+                try
+                {
+                    var result = _milvusClientService.CreateDatabaseAsync(databaseName);
+                    return Ok();
+                }
+                catch (System.Exception ex)
+                {
+                    return StatusCode(400, "An error occurred while with database name" + ex.Message);
+                }
+            }
     }
 }

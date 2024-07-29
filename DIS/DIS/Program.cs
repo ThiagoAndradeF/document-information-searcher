@@ -10,8 +10,10 @@ builder.Services.AddSwaggerGen();
 
 var milvusHost = builder.Configuration["Milvus:Host"];
 var milvusPort = int.Parse(builder.Configuration["Milvus:Port"]);
-builder.Services.AddSingleton(new MilvusClient(milvusHost, milvusPort));
+builder.Services.AddSingleton<MilvusClient>(provider => new MilvusClient(milvusHost, milvusPort));
+builder.Services.AddScoped<IMilvusClientService, MilvusClientService>();
 builder.Services.AddScoped<DocumentService>();
+
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
