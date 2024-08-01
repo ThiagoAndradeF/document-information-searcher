@@ -29,8 +29,7 @@ namespace DIS.Services
                 default:
                     throw new System.Exception("Unsupported file type.");
             }
-
-            List<string> chunks = ChunkText(content);
+            List<string> chunks = ExtractDocumentationSections(content);
             return chunks;
         }
 
@@ -56,6 +55,22 @@ namespace DIS.Services
 
                 return text.ToString();
             }
+        }
+        private List<string> ExtractDocumentationSections(string text)
+        {
+            List<string> documentationSections = new List<string>();
+            // Exemplo de Regex para capturar seções relacionadas a documentações
+            Regex regex = new Regex(@"(documentos necessários|submeter os seguintes documentos|requerimentos de documentação):\s*([^\n]+)",
+                                    RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            MatchCollection matches = regex.Matches(text);
+
+            foreach (Match match in matches)
+            {
+                documentationSections.Add(match.Value);  // Adiciona a seção capturada à lista
+            }
+
+            return documentationSections;
         }
 
         private static List<string> ChunkText(string text)
