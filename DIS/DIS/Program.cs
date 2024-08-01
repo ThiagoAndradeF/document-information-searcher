@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Milvus.Client;
 using OpenAI;
 using OpenAI.Managers;
-using OpenAI.ObjectModels.RequestModels;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +15,7 @@ var milvusPort = int.Parse(builder.Configuration["Milvus:Port"]);
 
 builder.Services.AddSingleton(new OpenAIService(new OpenAiOptions()
 {
-	ApiKey = "chave_da_api"
+	ApiKey = "api_key"
 }));
 builder.Services.AddSingleton<MilvusClient>(provider => new MilvusClient(milvusHost, milvusPort));
 builder.Services.AddScoped<IMilvusClientService, MilvusClientService>();

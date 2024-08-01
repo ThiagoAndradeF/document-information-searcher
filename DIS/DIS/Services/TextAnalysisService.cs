@@ -1,8 +1,6 @@
 ﻿using OpenAI.ObjectModels;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.Managers;
-using OpenAI;
-using System.Text;
 public interface ITextAnalysisService
 {
     Task<string> AnalyzeTextAsync(List<string> texts);
