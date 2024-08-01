@@ -7,7 +7,6 @@ public interface ITextAnalysisService
 {
     Task<string> AnalyzeTextAsync(List<string> texts);
 }
-
 public class TextAnalysisService : ITextAnalysisService
 {
     private readonly OpenAIService _openAIService;
