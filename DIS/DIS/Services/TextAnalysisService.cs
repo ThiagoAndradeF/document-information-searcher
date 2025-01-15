@@ -1,43 +1,98 @@
-﻿using OpenAI.ObjectModels;
-using OpenAI.ObjectModels.RequestModels;
+﻿
 using OpenAI.Managers;
+using OpenAI.ObjectModels.RequestModels;
 public interface ITextAnalysisService
 {
-    Task<string> AnalyzeTextAsync(List<string> texts);
+    Task<bool> UploadDataOnQdrant(List<string> chuncks);
 }
 public class TextAnalysisService : ITextAnalysisService
 {
-    private readonly OpenAIService _openAIService;
+    private readonly OpenAIService _openAiService;
 
     public TextAnalysisService(OpenAIService openAIService)
     {
-        _openAIService = openAIService;
+        _openAiService = openAIService;
     }
 
-    public async Task<string> AnalyzeTextAsync(List<string> texts)
+    public async Task<bool> UploadDataOnQdrant(List<string> chunks)
     {
-        List<ChatMessage> messages = new List<ChatMessage>();
-        foreach (var text in texts)
-        {
-            messages.Add(ChatMessage.FromUser(text));
-        }
-        messages.Insert(0, ChatMessage.FromSystem("You are a analizer to texts"));
+        try{
+            var embedChuncks = new List<List<double>>();
+            foreach (var chunk in chunks)
+            {
+                var embedding = await GetEmbeddingAsync(chunk);
+                embedChuncks.Add(embedding);
+            }
 
-        var completionResult = await _openAIService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
-        {
-            Messages = messages,
-            Model = Models.Gpt_3_5_Turbo,
-            Temperature = 0.5f
-        });
 
-        if (completionResult.Successful)
-        {
-            return completionResult.Choices.First().Message.Content;
+
+
+            return true;
+        }catch(Exception ex){
+            throw new Exception("there was an error loading data into qdrant ", ex);
         }
-        else
-        {
-            return $"Failed to process request: {completionResult.Error?.Code}: {completionResult.Error?.Message}";
+    }
+    private async Task<List<double>> GetEmbeddingAsync(string chunk)
+    {
+        try{
+            var embeddingResult = await _openAiService.Embeddings.CreateEmbedding(new EmbeddingCreateRequest
+            {
+                Input = chunk,
+                Model = "text-embedding-ada-002"
+            });
+
+            if (embeddingResult.Successful)
+            {
+                return embeddingResult.Data.First().Embedding;
+            }
+            else
+            {
+                Console.WriteLine($"Embedding Error: {embeddingResult.Error?.Message}");
+                return new List<double>();
+            }
+        }catch{
+            throw new Exception("there was an error getting embedding from openai");
         }
     }
 }
+
+
+//     public async Task<bool> InsertDocumentOnQdrant(Guid tenantId, string blobPath, string fileName)
+// {
+//     try
+//     {
+//         // Nome da coleção concatenando tenantId e fileName
+//         string collectionName = $"{tenantId}_{fileName}";
+//         // Inserir mensagem de sistema
+//         List<ChatMessage> messages = new List<ChatMessage>
+//         {
+//             ChatMessage.FromSystem("Seu nome é Lummy, uma assistente virtual especializada em responder dúvidas sobre licitações públicas. Analise cuidadosamente o conteúdo do documento fornecido e extraia todas as informações relevantes. Você deve utilizar essas informações como base para responder exclusivamente a perguntas relacionadas à licitação especificada no documento. Mantenha suas respostas precisas, objetivas e alinhadas ao que está escrito no material fornecido. Não inclua informações externas ou irrelevantes ao contexto do documento.")
+//         };
+
+//         // Obter informações do arquivo no blob storage
+//         var blobFileInfo = await _fileService.GetFileAsync(tenantId, blobPath, fileName);
+//         if (blobFileInfo == null)
+//         {
+//             throw new Exception("Arquivo não encontrado.");
+//         }
+
+//         // Extrair o conteúdo do documento
+//         string content = _extractorService.ProcessDocumentByGemni(blobFileInfo);
+
+//         // Gerar valores embutidos (embeddings) usando o cliente Gemini
+//         var embeddedValues = await _geminiClient.EmbeddedContentsPrompt(content);
+
+//         // Verificar se a coleção já existe
+//         bool collectionExists = await _qdrantClient.CollectionExistsAsync(collectionName);
+//         if (collectionExists)
+//         {
+//             return true;
+//         }
+//         return false;
+
+//     }
+//     catch{
+//         throw new Exception("there was an error inserting document into qdrant");
+//     }
+// }
 

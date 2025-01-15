@@ -21,8 +21,6 @@ builder.Services.AddSingleton(new QdrantClient(
   https: true,
   apiKey: qdrantKey
 ));
-
-builder.Services.AddScoped<IMilvusClientService, MilvusClientService>();
 builder.Services.AddScoped<ITextAnalysisService, TextAnalysisService>();
 builder.Services.AddScoped<DocumentService>();
 

@@ -26,7 +26,7 @@ namespace DIS.Services
                 default:
                     throw new System.Exception("Unsupported file type.");
             }
-            List<string> chunks = ExtractDocumentationSections(content);
+            List<string> chunks = SplitBidNoticeBySections(content);
             return chunks;
         }
 
@@ -53,22 +53,41 @@ namespace DIS.Services
                 return text.ToString();
             }
         }
-        private List<string> ExtractDocumentationSections(string text)
+        private List<string> SplitBidNoticeBySections(string text)
         {
-            List<string> documentationSections = new List<string>();
-            // Exemplo de Regex para capturar seções relacionadas a documentações
-            Regex regex = new Regex(@"(documentos necessários|submeter os seguintes documentos|requerimentos de documentação):\s*([^\n]+)",
-                                    RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            List<string> sections = new List<string>();
 
-            MatchCollection matches = regex.Matches(text);
+            // Regex para capturar seções baseadas em numeração ou títulos em maiúsculas
+            Regex sectionRegex = new Regex(@"(^[0-9]+\..*|^[A-Z\s]+)$", RegexOptions.Multiline);
+
+            MatchCollection matches = sectionRegex.Matches(text);
+            int lastIndex = 0;
 
             foreach (Match match in matches)
             {
-                documentationSections.Add(match.Value);  // Adiciona a seção capturada à lista
+                int currentIndex = match.Index;
+
+                if (lastIndex < currentIndex)
+                {
+                    string section = text.Substring(lastIndex, currentIndex - lastIndex).Trim();
+                    if (!string.IsNullOrEmpty(section))
+                        sections.Add(section);
+                }
+
+                lastIndex = currentIndex;
             }
 
-            return documentationSections;
+            // Adiciona o último pedaço de texto
+            if (lastIndex < text.Length)
+            {
+                string lastSection = text.Substring(lastIndex).Trim();
+                if (!string.IsNullOrEmpty(lastSection))
+                    sections.Add(lastSection);
+            }
+
+            return sections;
         }
+
 
         private static List<string> ChunkText(string text)
         {
