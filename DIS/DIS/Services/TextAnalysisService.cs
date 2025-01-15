@@ -1,35 +1,55 @@
 ﻿
 using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
+using OpenAI.ObjectModels.ResponseModels;
+using Qdrant.Client;
+using Qdrant.Client.Grpc;
 public interface ITextAnalysisService
 {
-    Task<bool> UploadDataOnQdrant(List<string> chuncks);
+    Task<bool> UploadDataOnQdrant(List<string> chuncks, string collectionName);
 }
 public class TextAnalysisService : ITextAnalysisService
 {
     private readonly OpenAIService _openAiService;
-
-    public TextAnalysisService(OpenAIService openAIService)
+    private readonly QdrantClient _qdrantClient;
+    public TextAnalysisService(OpenAIService openAIService, QdrantClient qdrantClient)
     {
         _openAiService = openAIService;
+        _qdrantClient = qdrantClient;
     }
 
-    public async Task<bool> UploadDataOnQdrant(List<string> chunks)
+    public async Task<bool> UploadDataOnQdrant(List<string> chunks, string collectionName)
     {
         try{
-            var embedChuncks = new List<List<double>>();
-            foreach (var chunk in chunks)
-            {
-                var embedding = await GetEmbeddingAsync(chunk);
-                embedChuncks.Add(embedding);
+            var embedChunks = new List<PointStruct>();
+            for(int i=0;i<chunks.Count();i++){
+                var embedding = await GetEmbeddingAsync(chunks[i]);
+                var point = new PointStruct
+                {
+                    // Gerando um ID único para o ponto
+                    Id = (ulong)i,
+                    // Convertendo o array de double para o formato esperado (float[])
+                    Vectors = embedding.Select(d => (float)d).ToArray(),
+                    Payload = {}
+                };
             }
-
-
-
-
+            // Verificar se a coleção já existe
+            bool collectionExists = await _qdrantClient.CollectionExistsAsync(collectionName);
+            if (collectionExists)
+            {
+                throw new Exception("Collection alred exist");
+            }
+            var vectorConfig = new VectorParams
+            {
+                Size = (ulong)embedChunks.Count(),
+                Distance = Distance.Cosine
+            };
+            await _qdrantClient.CreateCollectionAsync(collectionName, vectorConfig);
+            var operationInfo = await _qdrantClient.UpsertAsync(collectionName, embedChunks);
             return true;
-        }catch(Exception ex){
-            throw new Exception("there was an error loading data into qdrant ", ex);
+        }
+        catch(Exception ex){
+            throw new Exception("There was an error loading data into qdrant ", ex);
         }
     }
     private async Task<List<double>> GetEmbeddingAsync(string chunk)
@@ -55,44 +75,3 @@ public class TextAnalysisService : ITextAnalysisService
         }
     }
 }
-
-
-//     public async Task<bool> InsertDocumentOnQdrant(Guid tenantId, string blobPath, string fileName)
-// {
-//     try
-//     {
-//         // Nome da coleção concatenando tenantId e fileName
-//         string collectionName = $"{tenantId}_{fileName}";
-//         // Inserir mensagem de sistema
-//         List<ChatMessage> messages = new List<ChatMessage>
-//         {
-//             ChatMessage.FromSystem("Seu nome é Lummy, uma assistente virtual especializada em responder dúvidas sobre licitações públicas. Analise cuidadosamente o conteúdo do documento fornecido e extraia todas as informações relevantes. Você deve utilizar essas informações como base para responder exclusivamente a perguntas relacionadas à licitação especificada no documento. Mantenha suas respostas precisas, objetivas e alinhadas ao que está escrito no material fornecido. Não inclua informações externas ou irrelevantes ao contexto do documento.")
-//         };
-
-//         // Obter informações do arquivo no blob storage
-//         var blobFileInfo = await _fileService.GetFileAsync(tenantId, blobPath, fileName);
-//         if (blobFileInfo == null)
-//         {
-//             throw new Exception("Arquivo não encontrado.");
-//         }
-
-//         // Extrair o conteúdo do documento
-//         string content = _extractorService.ProcessDocumentByGemni(blobFileInfo);
-
-//         // Gerar valores embutidos (embeddings) usando o cliente Gemini
-//         var embeddedValues = await _geminiClient.EmbeddedContentsPrompt(content);
-
-//         // Verificar se a coleção já existe
-//         bool collectionExists = await _qdrantClient.CollectionExistsAsync(collectionName);
-//         if (collectionExists)
-//         {
-//             return true;
-//         }
-//         return false;
-
-//     }
-//     catch{
-//         throw new Exception("there was an error inserting document into qdrant");
-//     }
-// }
-
