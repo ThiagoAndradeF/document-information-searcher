@@ -7,6 +7,8 @@ using Qdrant.Client;
 using Qdrant.Client.Grpc;
 public interface ITextAnalysisService
 {
+    Task CreateCollection(string filepath, string collectionName);
+    Task<string> QueryByCollection(string query, string collectionName);
 }
 public class TextAnalysisService : ITextAnalysisService 
 {
@@ -37,10 +39,4 @@ public class TextAnalysisService : ITextAnalysisService
             throw new Exception("There was an error querying the collection ", ex);
         }
     }
-
-
-
-
-
-    
 }

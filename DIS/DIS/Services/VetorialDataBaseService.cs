@@ -1,5 +1,7 @@
 
+using DocumentFormat.OpenXml.Office2010.Excel;
 using OpenAI.Managers;
+using OpenAI.ObjectModels;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels.ResponseModels;
 using Qdrant.Client;
@@ -26,8 +28,9 @@ public class VetorialDataBaseService
                     Id = (ulong)i,
                     // Convertendo o array de double para o formato esperado (float[])
                     Vectors = embedding,
-                    Payload = {}
+                    Payload = {{"document_content", chunks[i]}}
                 };
+                embedChunks.Add(point);
             }
             // Verificar se a coleção já existe
             bool collectionExists = await _qdrantClient.CollectionExistsAsync(collectionName);
@@ -37,7 +40,7 @@ public class VetorialDataBaseService
             }
             var vectorConfig = new VectorParams
             {
-                Size = (ulong)embedChunks.Count(),
+                Size = 1536,
                 Distance = Distance.Cosine
             };
             await _qdrantClient.CreateCollectionAsync(collectionName, vectorConfig);
@@ -76,7 +79,32 @@ public class VetorialDataBaseService
         if(result==null){
             return "No related information found in the document in this collection";
         }
-
-        return "";
+        List<string> documents = new List<string>();
+        foreach (var scoredPoint in result)
+        {
+            documents.Add(scoredPoint.Payload["document_content"].ToString());
+        }
+        var queryForGPT = string.Join(
+            "\n\nAs informações a seguir, são trechos de um edital de licitação pública, use esses trechos para responder a pergunta:\n\n",
+            documents);
+        queryForGPT += $"\n\nA pergunta é:\n{query}";
+        List<ChatMessage> messages = new List<ChatMessage>();
+        messages.Add(ChatMessage.FromUser(queryForGPT));
+        var completionResult = await _openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
+        {
+            Messages = messages,
+            Model = Models.Gpt_3_5_Turbo,
+            Temperature = 0.5f
+        });
+    // Retorna a resposta do GPT ou um erro
+        if (completionResult.Successful)
+        {
+            return completionResult.Choices.First().Message.Content;
+        }
+        else
+        {
+            return $"Failed to process request: {completionResult.Error?.Code}: {completionResult.Error?.Message}";
+        }
+        
     }
 }

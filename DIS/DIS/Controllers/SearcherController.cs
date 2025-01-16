@@ -4,21 +4,23 @@ using DIS.Modules;
 namespace DIS.Controllers
 {
     [ApiController]
-    [Route("api/")] 
+    [Route("api")] 
     public class SearcherController : ControllerBase
     {
-        private readonly TextAnalysisService _textAnalysisService;
+        private readonly ITextAnalysisService _textAnalysisService;
         
-        public SearcherController(TextAnalysisService textAnalysisService)
+        public SearcherController(ITextAnalysisService textAnalysisService)
         {
             _textAnalysisService = textAnalysisService;
         }
 
-        [HttpGet("{collectionName:string}")]
-        public async Task<ActionResult<string>> GetInformationByCollection([FromBody]string query, [FromRoute]string collectionName)
+        [HttpGet]
+        public async Task<ActionResult<string>> GetInformationByCollection()
         {
             try
             {
+                string query = "Quais são os documentos necessários para participar desta licitação?Poderia me listar quais são as Habilitalções?";
+                string collectionName = "Edital1";
                 var result = await _textAnalysisService.QueryByCollection(query, collectionName);
                 return Ok("Query Result!:  " + result);
             }
@@ -27,12 +29,13 @@ namespace DIS.Controllers
                throw new Exception("There was an error querying the collection ", ex);
             }
         }
-        [HttpPost("{collectionName:string}")]
-        public async Task<ActionResult> CreateCollection([FromBody]string filePath, string collectionName)
+        [HttpPost]
+        public async Task<ActionResult> CreateCollection()
         {
             try
-            {
-                await _textAnalysisService.CreateCollection(filePath, collectionName);
+            {   string filepath = "C:\\Edital.pdf";
+                string collectionName = "Edital1";
+                await _textAnalysisService.CreateCollection(filepath, collectionName);
                 return Ok("Created Success!");
             }
             catch (Exception ex)

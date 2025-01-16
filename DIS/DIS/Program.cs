@@ -10,7 +10,10 @@ var qdrantKey = builder.Configuration["QdrantKey"];
 var qdrantHost = builder.Configuration["QdrantHost"];
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "My API", Version = "v1" });
+});
 builder.Services.AddSingleton(new OpenAIService(new OpenAiOptions()
 {
 	ApiKey = openaiKey
@@ -45,6 +48,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
 
 app.UseHttpsRedirection();
 
