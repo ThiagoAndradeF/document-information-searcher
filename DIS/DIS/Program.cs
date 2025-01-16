@@ -23,6 +23,7 @@ builder.Services.AddSingleton(new QdrantClient(
 ));
 builder.Services.AddScoped<ITextAnalysisService, TextAnalysisService>();
 builder.Services.AddScoped<DocumentService>();
+builder.Services.AddScoped<VetorialDataBaseService>();
 
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

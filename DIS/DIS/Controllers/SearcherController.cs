@@ -4,34 +4,40 @@ using DIS.Modules;
 namespace DIS.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")] 
+    [Route("api/")] 
     public class SearcherController : ControllerBase
     {
-        private readonly DocumentService _documentationService;
         private readonly TextAnalysisService _textAnalysisService;
         
-        public SearcherController(DocumentService documentationService, TextAnalysisService textAnalysisService)
+        public SearcherController(TextAnalysisService textAnalysisService)
         {
-            _documentationService = documentationService;
             _textAnalysisService = textAnalysisService;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<List<string>>> GetInformationByDocument([FromBody] FilePathRequest request)
+        [HttpGet("{collectionName:string}")]
+        public async Task<ActionResult<string>> GetInformationByCollection([FromBody]string query, [FromRoute]string collectionName)
         {
-            if (string.IsNullOrEmpty(request.FilePath))
-            {
-                return BadRequest("File path is required.");
-            }
             try
             {
-                List<string> chunks = _documentationService.ProcessDocument(request.FilePath);
-                var result = _textAnalysisService.AnalyzeTextAsync(chunks);
-                return Ok(result);
+                var result = await _textAnalysisService.QueryByCollection(query, collectionName);
+                return Ok("Query Result!:  " + result);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while processing the document: " + ex.Message);
+               throw new Exception("There was an error querying the collection ", ex);
+            }
+        }
+        [HttpPost("{collectionName:string}")]
+        public async Task<ActionResult> CreateCollection([FromBody]string filePath, string collectionName)
+        {
+            try
+            {
+                await _textAnalysisService.CreateCollection(filePath, collectionName);
+                return Ok("Created Success!");
+            }
+            catch (Exception ex)
+            {
+               throw new Exception("There was an error querying the collection ", ex);
             }
         }
         

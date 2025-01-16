@@ -9,7 +9,6 @@ namespace DIS.Services
     public class DocumentService
     {
         public DocumentService() { }
-
         public List<string> ProcessDocument(string filepath)
         {
             string extension = System.IO.Path.GetExtension(filepath).ToLower();
