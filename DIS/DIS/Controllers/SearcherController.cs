@@ -1,6 +1,4 @@
-using DIS.Services;
 using Microsoft.AspNetCore.Mvc;
-using DIS.Modules;
 namespace DIS.Controllers
 {
     [ApiController]
@@ -8,12 +6,10 @@ namespace DIS.Controllers
     public class SearcherController : ControllerBase
     {
         private readonly ITextAnalysisService _textAnalysisService;
-        
         public SearcherController(ITextAnalysisService textAnalysisService)
         {
             _textAnalysisService = textAnalysisService;
         }
-
         [HttpGet]
         public async Task<ActionResult<string>> GetInformationByCollection()
         {

@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using OpenAI;
 using OpenAI.Managers;
 using Qdrant.Client;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 var openaiKey = builder.Configuration["OpenAiKey"];
 var qdrantKey = builder.Configuration["QdrantKey"]; 
 var qdrantHost = builder.Configuration["QdrantHost"];
+var redisConnectionString = builder.Configuration["RedisConnectionString"];
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -27,8 +30,7 @@ builder.Services.AddSingleton(new QdrantClient(
 builder.Services.AddScoped<ITextAnalysisService, TextAnalysisService>();
 builder.Services.AddScoped<DocumentService>();
 builder.Services.AddScoped<VetorialDataBaseService>();
-
-
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {

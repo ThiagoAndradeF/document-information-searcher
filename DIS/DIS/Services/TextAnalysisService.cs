@@ -1,10 +1,6 @@
 ﻿
 using DIS.Services;
 using OpenAI.Managers;
-using OpenAI.ObjectModels.RequestModels;
-using OpenAI.ObjectModels.ResponseModels;
-using Qdrant.Client;
-using Qdrant.Client.Grpc;
 public interface ITextAnalysisService
 {
     Task CreateCollection(string filepath, string collectionName);

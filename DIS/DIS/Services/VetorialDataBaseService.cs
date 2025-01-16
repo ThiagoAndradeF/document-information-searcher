@@ -1,9 +1,5 @@
-
-using DocumentFormat.OpenXml.Office2010.Excel;
 using OpenAI.Managers;
-using OpenAI.ObjectModels;
 using OpenAI.ObjectModels.RequestModels;
-using OpenAI.ObjectModels.ResponseModels;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 public class VetorialDataBaseService 
@@ -73,7 +69,7 @@ public class VetorialDataBaseService
             throw new Exception("there was an error getting embedding from openai");
         }
     }
-    public async Task<string> QueryByCollection(string query,string collectionName){
+    public async Task<string> QueryByCollection(string query,string collectionName,string briefExplanationAboutTheQuery="The following information is an excerpt from a document that is related to this question. Use these excerpts to help you answer the questions."){
         var embedQuery = await GetEmbeddingAsync(query);
         var result = await _qdrantClient.SearchAsync(collectionName, embedQuery, null);
         if(result==null){
@@ -84,27 +80,38 @@ public class VetorialDataBaseService
         {
             documents.Add(scoredPoint.Payload["document_content"].ToString());
         }
-        var queryForGPT = string.Join(
-            "\n\nAs informações a seguir, são trechos de um edital de licitação pública, use esses trechos para responder a pergunta:\n\n",
-            documents);
-        queryForGPT += $"\n\nA pergunta é:\n{query}";
-        List<ChatMessage> messages = new List<ChatMessage>();
-        messages.Add(ChatMessage.FromUser(queryForGPT));
-        var completionResult = await _openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
-        {
-            Messages = messages,
-            Model = Models.Gpt_3_5_Turbo,
-            Temperature = 0.5f
-        });
-    // Retorna a resposta do GPT ou um erro
-        if (completionResult.Successful)
-        {
-            return completionResult.Choices.First().Message.Content;
-        }
-        else
-        {
-            return $"Failed to process request: {completionResult.Error?.Code}: {completionResult.Error?.Message}";
-        }
-        
+        return string.Join(briefExplanationAboutTheQuery,documents);
     }
+
+    //For this method to work, add REDIS
+    public async Task RemoveInativeCollection(string collectionName, int timeInMinutes)
+    {
+        try{
+            
+            await _qdrantClient.GetCollectionInfoAsync(collectionName);
+            await _qdrantClient.DeleteCollectionAsync(collectionName);
+        }
+        catch(Exception ex){
+            throw new Exception("There was an error removing the collection ", ex);
+        }
+    }
+
+    // queryForGPT += $"\n\nA pergunta é:\n{query}";
+    //     List<ChatMessage> messages = new List<ChatMessage>();
+    //     messages.Add(ChatMessage.FromUser(queryForGPT));
+    //     var completionResult = await _openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
+    //     {
+    //         Messages = messages,
+    //         Model = Models.Gpt_3_5_Turbo,
+    //         Temperature = 0.5f
+    //     });
+    // // Retorna a resposta do GPT ou um erro
+    //     if (completionResult.Successful)
+    //     {
+    //         return completionResult.Choices.First().Message.Content;
+    //     }
+    //     else
+    //     {
+    //         return $"Failed to process request: {completionResult.Error?.Code}: {completionResult.Error?.Message}";
+    //     }
 }
