@@ -27,9 +27,11 @@ builder.Services.AddSingleton(new QdrantClient(
   https: true,
   apiKey: qdrantKey
 ));
-builder.Services.AddScoped<ITextAnalysisService, TextAnalysisService>();
+builder.Services.AddScoped<ITextAnalysisClient, TextAnalysisClient>();
 builder.Services.AddScoped<DocumentService>();
-builder.Services.AddScoped<VetorialDataBaseService>();
+builder.Services.AddScoped<MathService>();
+builder.Services.AddScoped<Context>();
+builder.Services.AddScoped<VContext>();
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>

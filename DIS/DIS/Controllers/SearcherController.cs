@@ -5,10 +5,10 @@ namespace DIS.Controllers
     [Route("api")] 
     public class SearcherController : ControllerBase
     {
-        private readonly ITextAnalysisService _textAnalysisService;
-        public SearcherController(ITextAnalysisService textAnalysisService)
+        private readonly ITextAnalysisClient _TextAnalysisClient;
+        public SearcherController(ITextAnalysisClient TextAnalysisClient)
         {
-            _textAnalysisService = textAnalysisService;
+            _TextAnalysisClient = TextAnalysisClient;
         }
         [HttpGet]
         public async Task<ActionResult<string>> GetInformationByCollection()
@@ -17,7 +17,7 @@ namespace DIS.Controllers
             {
                 string query = "Quais são os documentos necessários para participar desta licitação?Poderia me listar quais são as Habilitalções?";
                 string collectionName = "Edital1";
-                var result = await _textAnalysisService.QueryByCollection(query, collectionName);
+                var result = await _TextAnalysisClient.QueryByCollection(query, collectionName);
                 return Ok("Query Result!:  " + result);
             }
             catch (Exception ex)
@@ -31,7 +31,7 @@ namespace DIS.Controllers
             try
             {   string filepath = "C:\\Edital.pdf";
                 string collectionName = "Edital1";
-                await _textAnalysisService.CreateCollection(filepath, collectionName);
+                await _TextAnalysisClient.CreateCollection(filepath, collectionName);
                 return Ok("Created Success!");
             }
             catch (Exception ex)

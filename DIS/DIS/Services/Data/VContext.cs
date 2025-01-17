@@ -2,11 +2,11 @@ using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
-public class VetorialDataBaseService 
+public class VContext 
 {
     private readonly OpenAIService _openAiService;
     private readonly QdrantClient _qdrantClient;
-    public VetorialDataBaseService(OpenAIService openAIService, QdrantClient qdrantClient)
+    public VContext(OpenAIService openAIService, QdrantClient qdrantClient)
     {
         _openAiService = openAIService;
         _qdrantClient = qdrantClient;
@@ -95,6 +95,7 @@ public class VetorialDataBaseService
             throw new Exception("There was an error removing the collection ", ex);
         }
     }
+
 
     // queryForGPT += $"\n\nA pergunta é:\n{query}";
     //     List<ChatMessage> messages = new List<ChatMessage>();

@@ -1,26 +1,26 @@
 ﻿
 using DIS.Services;
 using OpenAI.Managers;
-public interface ITextAnalysisService
+public interface ITextAnalysisClient
 {
     Task CreateCollection(string filepath, string collectionName);
     Task<string> QueryByCollection(string query, string collectionName);
 }
-public class TextAnalysisService : ITextAnalysisService 
+public class TextAnalysisClient : ITextAnalysisClient 
 {
     private readonly OpenAIService _openAiService;
-    private readonly VetorialDataBaseService _vetorialDatabaseService;
+    private readonly VContext _vContext;
     private readonly DocumentService _documentService;
-    public TextAnalysisService(OpenAIService openAIService, VetorialDataBaseService vetorialDatabaseService, DocumentService documentService)
+    public TextAnalysisClient(OpenAIService openAIService, VContext vContext, DocumentService documentService)
     {
         _openAiService = openAIService;
-        _vetorialDatabaseService = vetorialDatabaseService;
+        _vContext = vContext;
         _documentService = documentService;
     }
     public async Task CreateCollection(string filepath, string collectionName){
         try{
             List<string> chunks = _documentService.ProcessDocument(filepath);
-            await _vetorialDatabaseService.UploadDataOnQdrant(chunks, collectionName);
+            await _vContext.UploadDataOnQdrant(chunks, collectionName);
         }
         catch(Exception ex){
             throw new Exception("There was an error creating the collection ", ex);
@@ -28,7 +28,7 @@ public class TextAnalysisService : ITextAnalysisService
     }
     public async Task<string> QueryByCollection(string query, string collectionName){
         try{
-            var result  = await _vetorialDatabaseService.QueryByCollection(query, collectionName);
+            var result  = await _vContext.QueryByCollection(query, collectionName);
             return result;
         }
         catch(Exception ex){

@@ -23,7 +23,7 @@ namespace DIS.Services
                     content = ReadPdfDocument(filepath);
                     break;
                 default:
-                    throw new System.Exception("Unsupported file type.");
+                    throw new Exception("Unsupported file type.");
             }
             List<string> chunks = SplitBidNoticeBySections(content);
             return chunks;
@@ -85,15 +85,6 @@ namespace DIS.Services
             }
 
             return sections;
-        }
-
-
-        private static List<string> ChunkText(string text)
-        {
-            List<string> chunks = new List<string>();
-            var sentences = Regex.Split(text, @"(?<=[\.!\?])\s+");
-            chunks.AddRange(sentences);
-            return chunks;
         }
     }
 }
