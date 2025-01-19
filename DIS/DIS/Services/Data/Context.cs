@@ -13,16 +13,32 @@ public class Context
         _redis = redis;
         _mathService = mathService;
     }
-    public async Task<string> StartConversationAsync(string initialMessage)
+    public async Task<string> StartConversationAsync(string collectionName)
     {
+
+        // string initialMessage
         var db = _redis.GetDatabase();
         var conversationId = Guid.NewGuid().ToString();
         var createdAt = DateTime.UtcNow;
-        var formatedMessage = ChatMessage.FromUser(initialMessage);
         await db.StringSetAsync($"conversation:{conversationId}:createdAt", createdAt.ToString("o")); // ISO 8601
-        var messageKey = $"conversation:{conversationId}:messages";
-        await db.ListRightPushAsync(messageKey, JsonConvert.SerializeObject(formatedMessage));
+        await db.StringSetAsync($"conversation:{conversationId}:collectionName", collectionName);
+
+        // var formatedMessage = ChatMessage.FromUser(initialMessage);
+        // var messageKey = $"conversation:{conversationId}:messages";
+        // await db.ListRightPushAsync(messageKey, JsonConvert.SerializeObject(formatedMessage));
         return conversationId;
+    }
+    public async Task<string> GetCollectionNameAsync(string conversationId)
+    {
+        var db = _redis.GetDatabase();
+        // Recuperando o collectionName associado ao conversationId
+        var collectionName = await db.StringGetAsync($"conversation:{conversationId}:collectionName");
+        if (collectionName.IsNullOrEmpty)
+        {
+            // Se não encontrar o collectionName, você pode retornar null ou lançar uma exceção, dependendo da sua lógica
+            return null;
+        }
+        return collectionName;
     }
     public async Task AddMessageHistoryAsync(string conversationId, string content, bool isUser)
     {
@@ -31,7 +47,7 @@ public class Context
         var messageKey = $"conversation:{conversationId}:messages";
         await db.ListRightPushAsync(messageKey, JsonConvert.SerializeObject(formatedMessage));
     }
-    public async Task AddHistoryReferencePointAsync(PointStruct pointStruct, string conversationId)
+    public async Task AddHistoryReferencePointAsync(ScoredPoint pointStruct, string conversationId, List<ScoredPoint>? pointsInMemory)
     {
         var db = _redis.GetDatabase();
         //LIST EXISTENT POINTS
@@ -45,10 +61,18 @@ public class Context
             return; 
         }else{
             await db.ListRightPushAsync($"conversation:{conversationId}:points", JsonConvert.SerializeObject(pointStruct));
+            pointsInMemory?.Add(pointStruct);   
         }
     }
+    public async Task<bool> ConversationExistsAsync(string conversationId)
+    {
+        var db = _redis.GetDatabase();
+        var key = $"conversation:{conversationId}:createdAt";
+        return await db.KeyExistsAsync(key);
+    }
 
-    private bool hasSimilar(List<PointStruct> pointStructs, PointStruct newPoint)
+
+    private bool hasSimilar(List<ScoredPoint> pointStructs, ScoredPoint newPoint)
     {
         foreach (var point in pointStructs)
         {
@@ -77,14 +101,22 @@ public class Context
         return false;
     }
     
-    public async Task<List<PointStruct?>> GetPointsInContextAsync(string conversationId)
+    public async Task<List<ScoredPoint?>> GetPointsInContextAsync(string conversationId)
     {
         var db = _redis.GetDatabase();
         var points = await db.SetMembersAsync($"conversation:{conversationId}:points");
-        
         return points
-            .Select(point => JsonConvert.DeserializeObject<PointStruct>(point))
+            .Select(point => JsonConvert.DeserializeObject<ScoredPoint>(point))
             .Where(point => point != null) 
+            .ToList();
+    }
+    public async Task<List<ChatMessage?>> GetMessagesHistoryAsync(string conversationId)
+    {
+        var db = _redis.GetDatabase();
+        var messages = await db.SetMembersAsync($"conversation:{conversationId}:messages");
+        return messages
+            .Select(message => JsonConvert.DeserializeObject<ChatMessage>(message))
+            .Where(message => message != null) 
             .ToList();
     }
 

@@ -69,18 +69,13 @@ public class VContext
             throw new Exception("there was an error getting embedding from openai");
         }
     }
-    public async Task<string> QueryByCollection(string query,string collectionName,string briefExplanationAboutTheQuery="The following information is an excerpt from a document that is related to this question. Use these excerpts to help you answer the questions."){
+    public async Task<List<ScoredPoint>> QueryByCollection(string query,string collectionName,string briefExplanationAboutTheQuery="The following information is an excerpt from a document that is related to this question. Use these excerpts to help you answer the questions."){
         var embedQuery = await GetEmbeddingAsync(query);
         var result = await _qdrantClient.SearchAsync(collectionName, embedQuery, null);
         if(result==null){
-            return "No related information found in the document in this collection";
+            return new List<ScoredPoint>();
         }
-        List<string> documents = new List<string>();
-        foreach (var scoredPoint in result)
-        {
-            documents.Add(scoredPoint.Payload["document_content"].ToString());
-        }
-        return string.Join(briefExplanationAboutTheQuery,documents);
+        return result.ToList();
     }
 
     //For this method to work, add REDIS
