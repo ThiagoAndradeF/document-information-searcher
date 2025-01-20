@@ -31,10 +31,10 @@ git clone https://github.com/ThiagoAndradeF/document-information-searcher
 
 Before running the application, make sure to set the necessary environment variables:
 
-- **OpenAI API Key:** Your API key for OpenAI services.
-- **Redis Connection String:** The connection string for Redis, used for caching context data.
-- **Qdrant Host:** The host for the Qdrant vector database.
-- **Qdrant API Key:** The API key required to interact with the Qdrant database.
+- **OpenAiKey:** Your API key for OpenAI services.
+- **RedisConnectionString:** The connection string for Redis, used for caching context data.
+- **QdrantHost:** The host for the Qdrant vector database.
+- **QdrantKey:** The API key required to interact with the Qdrant database.
 
 ## Project Objective
 
