@@ -9,7 +9,7 @@ public interface ITextAnalysisClient
     Task CreateCollection(string filepath, string collectionName);
     Task<string> CreateConversationIfNotExists(string conversationId, string? collectionName);
     Task RetrieveHistoryContext(string conversationId);
-    Task<string> SendMessage(string conversationId, string query, string instructionByDocument);
+    Task<string> SendMessage(string conversationId, string query, string? instructionByDocument);
 }
 public class TextAnalysisClient : ITextAnalysisClient 
 {

@@ -91,23 +91,4 @@ public class VContext
         }
     }
 
-
-    // queryForGPT += $"\n\nA pergunta é:\n{query}";
-    //     List<ChatMessage> messages = new List<ChatMessage>();
-    //     messages.Add(ChatMessage.FromUser(queryForGPT));
-    //     var completionResult = await _openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
-    //     {
-    //         Messages = messages,
-    //         Model = Models.Gpt_3_5_Turbo,
-    //         Temperature = 0.5f
-    //     });
-    // // Retorna a resposta do GPT ou um erro
-    //     if (completionResult.Successful)
-    //     {
-    //         return completionResult.Choices.First().Message.Content;
-    //     }
-    //     else
-    //     {
-    //         return $"Failed to process request: {completionResult.Error?.Code}: {completionResult.Error?.Message}";
-    //     }
 }
