@@ -16,26 +16,20 @@ public class Context
     public async Task<string> StartConversationAsync(string collectionName)
     {
 
-        // string initialMessage
         var db = _redis.GetDatabase();
         var conversationId = Guid.NewGuid().ToString();
         var createdAt = DateTime.UtcNow;
         await db.StringSetAsync($"conversation:{conversationId}:createdAt", createdAt.ToString("o")); // ISO 8601
         await db.StringSetAsync($"conversation:{conversationId}:collectionName", collectionName);
 
-        // var formatedMessage = ChatMessage.FromUser(initialMessage);
-        // var messageKey = $"conversation:{conversationId}:messages";
-        // await db.ListRightPushAsync(messageKey, JsonConvert.SerializeObject(formatedMessage));
         return conversationId;
     }
     public async Task<string> GetCollectionNameAsync(string conversationId)
     {
         var db = _redis.GetDatabase();
-        // Recuperando o collectionName associado ao conversationId
         var collectionName = await db.StringGetAsync($"conversation:{conversationId}:collectionName");
         if (collectionName.IsNullOrEmpty)
         {
-            // Se não encontrar o collectionName, você pode retornar null ou lançar uma exceção, dependendo da sua lógica
             return null;
         }
         return collectionName;
