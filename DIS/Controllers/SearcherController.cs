@@ -42,7 +42,6 @@ namespace DIS.Controllers
                 throw new Exception("There was an error querying the collection", ex);
             }
         }
-
         // Correção no template de rota
         [HttpPost("{conversationId}")]
         public async Task<ActionResult> SendMessage([FromRoute] string conversationId, [FromBody] string query)

@@ -36,6 +36,21 @@ public class TextAnalysisClient : ITextAnalysisClient
             throw new Exception("There was an error creating the collection ", ex);
         }
     }
+    public async Task CreateCollectionByLink(string link, string collectionName)
+    {
+        try
+        {
+            string tempFilePath = await _documentService.DownloadFileFromUrl(link);
+            List<string> chunks = _documentService.ProcessDocument(tempFilePath);
+            await _vContext.UploadDataOnQdrant(chunks, collectionName);
+            File.Delete(tempFilePath); 
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("There was an error creating the collection", ex);
+        }
+    }
+
     public async Task<string> CreateConversationIfNotExists(string conversationId, string? collectionName){
         try{
             //VERIFICAR SE CONVERSA EXISTE NO HISTORICO 
@@ -56,6 +71,7 @@ public class TextAnalysisClient : ITextAnalysisClient
     }
     //ADICIONAR MENSAGEM NO HISTORICO
     public async Task<string> SendMessage(string conversationId, string query,  string instructionByDocument = "Use these excerpts as a basis for your answers."){
+
         await _context.AddMessageHistoryAsync(conversationId, query, true);
         //QUERY NO QDRABT
         var referencialResult = await _vContext.QueryByCollection(query, collection_name);
@@ -88,10 +104,5 @@ public class TextAnalysisClient : ITextAnalysisClient
         {
             return $"Failed to process request: {completionResult.Error?.Code}: {completionResult.Error?.Message}";
         }
-
     }
-
-
-
-
 }

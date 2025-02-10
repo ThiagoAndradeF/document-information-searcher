@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using iTextSharp.text.pdf.parser;
 using System.Text;
 using System.Text.RegularExpressions;
+using Path = System.IO.Path;
 
 namespace DIS.Services
 {
@@ -86,5 +87,22 @@ namespace DIS.Services
 
             return sections;
         }
+        public async Task<string> DownloadFileFromUrl(string fileUrl)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                HttpResponseMessage response = await client.GetAsync(fileUrl);
+                response.EnsureSuccessStatusCode();
+
+                string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".pdf"); // Supondo que seja um PDF
+                await using (FileStream fs = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    await response.Content.CopyToAsync(fs);
+                }
+
+                return tempFilePath;
+            }
+        }
+
     }
 }

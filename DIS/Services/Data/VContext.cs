@@ -12,7 +12,7 @@ public class VContext
         _qdrantClient = qdrantClient;
     }
 
-    public async Task<bool> UploadDataOnQdrant(List<string> chunks, string collectionName)
+    public async Task UploadDataOnQdrant(List<string> chunks, string collectionName)
     {
         try{
             var embedChunks = new List<PointStruct>();
@@ -41,7 +41,6 @@ public class VContext
             };
             await _qdrantClient.CreateCollectionAsync(collectionName, vectorConfig);
             var operationInfo = await _qdrantClient.UpsertAsync(collectionName, embedChunks);
-            return true;
         }
         catch(Exception ex){
             throw new Exception("There was an error loading data into qdrant ", ex);
